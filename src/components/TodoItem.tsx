@@ -1,5 +1,4 @@
-import * as React from "react";
-import { Item } from "../types";
+import { TodoItem as Item } from "../types";
 import ListItem from "@mui/material/ListItem";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import CheckBoxIcon from "@mui/icons-material/CheckBox";

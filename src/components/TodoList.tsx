@@ -3,7 +3,7 @@ import { TodoItem } from "./TodoItem";
 import List from "@mui/material/List";
 import { EditItemDialog } from "./EditItemDialog";
 import * as O from "fp-ts/lib/Option";
-import { Item } from "../types";
+import { TodoItem as Item } from "../types";
 import { getDefaultItem } from "../helpers";
 
 const item1 = getDefaultItem();

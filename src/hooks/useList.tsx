@@ -1,8 +1,12 @@
 import { TodoItem } from "../types";
-import { lenses } from "../optics";
+import { itemIdIso, lenses } from "../optics";
 import { O, RA, pipe, monocle, State } from "../deps";
 import { findFirst, modifyOption } from "monocle-ts/lib/Optional";
 import { identity } from "fp-ts/lib/function";
+import { highlight } from "../utils";
+import { getDefaultItem, newItemId } from "../helpers";
+import { ItemId } from "../newtypes";
+import * as tt from "io-ts-types";
 
 const { Lens, Prism, Optional, fromTraversable } = monocle;
 
@@ -14,16 +18,11 @@ const { Lens, Prism, Optional, fromTraversable } = monocle;
 interface ListState {
   todoList: readonly TodoItem[];
 }
-const testId = "testId";
 
-const initialTodoitem: TodoItem = {
-  id: testId,
-  title: "",
-  description: "", // optional
-  done: false,
-};
-const initialState: ListState = {
-  todoList: [initialTodoitem],
+const testId = itemIdIso.wrap("testId" as tt.NonEmptyString);
+
+export const initialState: ListState = {
+  todoList: [getDefaultItem()],
 };
 
 const todoListL = Lens.fromProp<ListState>()("todoList");
@@ -40,24 +39,43 @@ const todoListOptional = new Optional<readonly TodoItem[], readonly TodoItem[]>(
   },
 );
 
-const modifyItem = (id: string) => (fn: (x: TodoItem) => TodoItem) =>
+const updateItem = (id: ItemId, fn: (x: TodoItem) => TodoItem) =>
   pipe(
     todoListL.composeOptional(todoListOptional),
     findFirst((x) => x.id === id),
     modifyOption(fn),
   );
 
-console.log(
-  pipe(
+const updateItemTitle = (id: ItemId, name: string) =>
+  updateItem(id, lenses.title.set(name));
+
+const updateItemDescription = (id: ItemId, name: string) =>
+  updateItem(id, lenses.description.set(name));
+
+const updateOptionalState =
+  (fn: (s: ListState) => O.Option<ListState>) => (s: ListState) =>
+    pipe(
+      s,
+      fn,
+      O.fold(() => s, identity),
+    );
+
+export function run() {
+  highlight.cyan`${pipe(
     State.modify((x: ListState) => doneTraversable.set(true)(x)),
     State.chain(() =>
-      State.modify((state) =>
-        pipe(
-          pipe(lenses.description.set("what"), modifyItem(testId)),
-          O.fold(() => state, identity),
+      State.modify(updateOptionalState(updateItemTitle(testId, "Learn FP-TS"))),
+    ),
+    State.chain(() =>
+      State.modify(
+        updateOptionalState(
+          updateItemDescription(
+            testId,
+            "FP-TS is worth leanring since you write so much functional TypeScript",
+          ),
         ),
       ),
     ),
     State.execute(initialState),
-  ),
-);
+  )}`;
+}

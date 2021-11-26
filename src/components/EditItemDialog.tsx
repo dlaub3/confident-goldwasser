@@ -7,7 +7,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Box from "@mui/material/Box";
-import { Item } from "../types";
+import { TodoItem } from "../types";
 import * as RR from "fp-ts/lib/ReadonlyRecord";
 import * as O from "fp-ts/lib/Option";
 import * as E from "fp-ts/lib/Either";
@@ -23,8 +23,8 @@ import { lenses } from "../optics";
 import { match } from "ts-pattern";
 
 export const EditItemDialog = (props: {
-  item: O.Option<Item>;
-  handleSave: (x: Item) => void;
+  item: O.Option<TodoItem>;
+  handleSave: (x: TodoItem) => void;
   isOpen: boolean;
   handleClose: () => void;
 }) => {
@@ -32,7 +32,7 @@ export const EditItemDialog = (props: {
     props.handleClose();
   };
 
-  const [item, updateItem] = React.useState<O.Option<Item>>(props.item);
+  const [item, updateItem] = React.useState<O.Option<TodoItem>>(props.item);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const field = e.target.name as "title" | "description";

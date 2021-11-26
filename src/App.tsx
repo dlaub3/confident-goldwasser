@@ -7,10 +7,12 @@ import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 
 import { TodoList } from "./components/TodoList";
+import { run } from "./hooks/useList";
 
 export default function App() {
   const [dense, setDense] = React.useState(false);
   const [secondary, setSecondary] = React.useState(false);
+  run();
 
   return (
     <Box sx={{ flexGrow: 1, maxWidth: 752 }}>
