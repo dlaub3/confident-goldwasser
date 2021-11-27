@@ -1,13 +1,16 @@
 import { TodoItem as Item } from "../types";
 import ListItem from "@mui/material/ListItem";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
-import CheckBoxIcon from "@mui/icons-material/CheckBox";
 import ListItemText from "@mui/material/ListItemText";
-import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
-export const TodoItem = (props: { item: Item; onEdit: () => void }) => {
+export const TodoItem = (props: {
+  item: Item;
+  onEdit: () => void;
+  onToggleDone: () => void;
+}) => {
   return (
     <ListItem
       secondaryAction={
@@ -17,9 +20,17 @@ export const TodoItem = (props: { item: Item; onEdit: () => void }) => {
       }
     >
       <ListItemAvatar>
-        <Avatar>
-          <CheckBoxIcon />
-        </Avatar>
+        <IconButton
+          onClick={props.onToggleDone}
+          edge="end"
+          aria-label="toggle done"
+        >
+          {props.item.done ? (
+            <CheckCircleIcon color="success" />
+          ) : (
+            <CheckCircleIcon color="action" />
+          )}
+        </IconButton>
       </ListItemAvatar>
       <ListItemText
         primary={props.item.title}

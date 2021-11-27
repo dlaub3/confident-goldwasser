@@ -26,6 +26,10 @@ export const EditItemDialog = (props: {
 
   const [item, updateItem] = React.useState<O.Option<TodoItem>>(props.item);
 
+  React.useEffect(() => {
+    updateItem(props.item);
+  }, [props.item]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const field = e.target.name as "title" | "description";
     const value = e.target.value;
@@ -44,6 +48,7 @@ export const EditItemDialog = (props: {
 
   const handleSave = () => {
     pipe(item, O.fold(constVoid, props.handleSave));
+    props.handleClose();
   };
 
   return renderOption(item, (item) => (

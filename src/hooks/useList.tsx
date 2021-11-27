@@ -23,7 +23,10 @@ const todoListOptional = new Optional<readonly TodoItem[], readonly TodoItem[]>(
   },
 );
 
-const updateItem = (id: ItemId, fn: (x: TodoItem) => TodoItem) =>
+const updateItem = (
+  id: ItemId,
+  fn: (() => TodoItem) | ((x: TodoItem) => TodoItem),
+) =>
   pipe(
     todoListL.composeOptional(todoListOptional),
     findFirst((x) => x.id === id),
@@ -38,9 +41,26 @@ const updateOptionalState =
       O.fold(() => s, identity),
     );
 
-const editItem = (item: TodoItem) => {
+const updateOrFallbackOptional =
+  (
+    updateFn: (s: ListState) => O.Option<ListState>,
+    fallbackFn: (s: ListState) => ListState,
+  ) =>
+  (s: ListState) =>
+    pipe(
+      s,
+      updateFn,
+      O.fold(() => fallbackFn(s), identity),
+    );
+
+const updateOrInsert = (item: TodoItem) => {
   return pipe(
-    State.modify(updateOptionalState(updateItem(item.id, () => item))),
+    State.modify(
+      updateOrFallbackOptional(
+        updateItem(item.id, () => item),
+        todoListL.modify(RA.prepend(item)),
+      ),
+    ),
   );
 };
 
@@ -73,7 +93,7 @@ export const useList = (props: ListState = { todoList: [] }) => {
   return {
     todoList: pipe(getTodoList(), State.evaluate(list)),
     doneList: pipe(getDoneList(), State.evaluate(list)),
-    editItem: flow(editItem, State.execute(list), setList),
+    editItem: flow(updateOrInsert, State.execute(list), setList),
     toggleItemDone: flow(toggleDone, State.execute(list), setList),
     toggleDone: flow(setAllDone(true), State.execute(list), setList),
     toggleTodo: flow(setAllDone(false), State.execute(list), setList),

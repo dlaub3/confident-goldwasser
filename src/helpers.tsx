@@ -10,10 +10,9 @@ export const newItemId = (): ItemId => {
   return itemIdIso.wrap(uuidv4() as tt.NonEmptyString);
 };
 
-const testId = itemIdIso.wrap("testId" as tt.NonEmptyString);
 export const getDefaultItem = () =>
   ({
-    id: testId,
+    id: newItemId(),
     title: "",
     done: false,
   } as TodoItem);
