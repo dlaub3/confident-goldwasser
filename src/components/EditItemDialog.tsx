@@ -13,6 +13,8 @@ import FormHelperText from "@mui/material/FormHelperText";
 import { renderOption } from "../helpers";
 import { lenses } from "../optics";
 import { match } from "ts-pattern";
+import { validate } from "../validation";
+import { E, RNEA } from "../deps";
 
 export const EditItemDialog = (props: {
   item: O.Option<TodoItem>;
@@ -20,6 +22,10 @@ export const EditItemDialog = (props: {
   isOpen: boolean;
   handleClose: () => void;
 }) => {
+  const [errors, setErrors] = React.useState<
+    O.Option<RNEA.ReadonlyNonEmptyArray<string>>
+  >(O.none);
+
   const handleClose = () => {
     props.handleClose();
   };
@@ -43,22 +49,53 @@ export const EditItemDialog = (props: {
       })
       .exhaustive();
 
+    if (O.isSome(errors)) {
+      pipe(
+        item,
+        O.map(setField),
+        handleValidation,
+        E.fold(
+          (xs) => setErrors(O.some(xs)),
+          () => setErrors(O.none),
+        ),
+      );
+    }
+
     updateItem(O.map(setField));
   };
 
-  const handleSave = () => {
-    pipe(item, O.fold(constVoid, props.handleSave));
-    props.handleClose();
+  const handleValidation = (item: O.Option<TodoItem>) => {
+    return pipe(
+      item,
+      E.fromOption<RNEA.ReadonlyNonEmptyArray<string>>(() => ["None"]),
+      E.chain(validate),
+    );
   };
 
+  const handleSave = () => {
+    pipe(
+      item,
+      handleValidation,
+      E.fold(
+        (xs) => setErrors(O.some(xs)),
+        (x) => {
+          props.handleSave(x);
+          props.handleClose();
+        },
+      ),
+    );
+  };
+
+  const isError = O.isSome(errors);
+
   return renderOption(item, (item) => (
-    <Dialog open={props.isOpen} onClose={handleClose}>
+    <Dialog open={props.isOpen} onClose={handleClose} sx={{ p: 4, gap: 2 }}>
       <DialogTitle>Edit: {item.title}</DialogTitle>
-      <DialogContent>
+      <DialogContent sx={{ p: 4 }}>
         <Box
           component="form"
           sx={{
-            "& .MuiTextField-root": { m: 1, width: "25ch" },
+            "& .MuiTextField-root": { m: 1, width: "55ch" },
           }}
           noValidate
           autoComplete="off"
@@ -72,8 +109,19 @@ export const EditItemDialog = (props: {
             name="title"
             onChange={handleChange}
             aria-describedby="component-error-text"
+            error={isError}
           />
-          <FormHelperText error id="component-error-text"></FormHelperText>
+          {renderOption(errors, (messages) =>
+            pipe(
+              messages,
+              RNEA.map((msg) => (
+                <FormHelperText error={isError} id="component-error-text">
+                  {msg}
+                </FormHelperText>
+              )),
+              (xs) => <>{xs}</>,
+            ),
+          )}
 
           <TextField
             label="Description"
@@ -89,7 +137,9 @@ export const EditItemDialog = (props: {
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button onClick={handleSave}>Save</Button>
+        <Button disabled={isError} onClick={handleSave}>
+          Save
+        </Button>
       </DialogActions>
     </Dialog>
   ));

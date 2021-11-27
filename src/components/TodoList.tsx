@@ -10,19 +10,10 @@ import { TodoItem as Item } from "../types";
 import { getDefaultItem } from "../helpers";
 import { useList } from "../hooks/useList";
 import { coerceNewType } from "../utils";
-import {
-  Box,
-  Button,
-  Grid,
-  IconButton,
-  Paper,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Grid, Paper, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { css } from "@emotion/react";
-import { EnhancedTable } from "./Table";
-import { constVoid, RA } from "../deps";
+import { RA } from "../deps";
 
 export const TodoList = () => {
   const [item, setItem] = React.useState<O.Option<Item>>(O.none);
