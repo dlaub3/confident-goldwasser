@@ -1,29 +1,13 @@
-import { TodoItem } from "../types";
-import { itemIdIso, lenses } from "../optics";
+import React from "react";
+import { ListState, TodoItem } from "../types";
+import { lenses } from "../optics";
 import { O, RA, pipe, monocle, State } from "../deps";
 import { findFirst, modifyOption } from "monocle-ts/lib/Optional";
-import { identity } from "fp-ts/lib/function";
-import { highlight } from "../utils";
-import { getDefaultItem, newItemId } from "../helpers";
+import { flow, identity } from "fp-ts/lib/function";
 import { ItemId } from "../newtypes";
-import * as tt from "io-ts-types";
+import { pick } from "../utils";
 
-const { Lens, Prism, Optional, fromTraversable } = monocle;
-
-// State is a Monad over a function that
-// receives a new State value (s) and the result (a).
-// computations are calculated within the state ADT
-// and the result is the output,
-// the type of state does not change
-interface ListState {
-  todoList: readonly TodoItem[];
-}
-
-const testId = itemIdIso.wrap("testId" as tt.NonEmptyString);
-
-export const initialState: ListState = {
-  todoList: [getDefaultItem()],
-};
+const { Lens, Optional, fromTraversable } = monocle;
 
 const todoListL = Lens.fromProp<ListState>()("todoList");
 const todoItemTraversal = fromTraversable(RA.Traversable)<TodoItem>();
@@ -46,12 +30,6 @@ const updateItem = (id: ItemId, fn: (x: TodoItem) => TodoItem) =>
     modifyOption(fn),
   );
 
-const updateItemTitle = (id: ItemId, name: string) =>
-  updateItem(id, lenses.title.set(name));
-
-const updateItemDescription = (id: ItemId, name: string) =>
-  updateItem(id, lenses.description.set(name));
-
 const updateOptionalState =
   (fn: (s: ListState) => O.Option<ListState>) => (s: ListState) =>
     pipe(
@@ -60,22 +38,44 @@ const updateOptionalState =
       O.fold(() => s, identity),
     );
 
-export function run() {
-  highlight.cyan`${pipe(
-    State.modify((x: ListState) => doneTraversable.set(true)(x)),
-    State.chain(() =>
-      State.modify(updateOptionalState(updateItemTitle(testId, "Learn FP-TS"))),
-    ),
-    State.chain(() =>
-      State.modify(
-        updateOptionalState(
-          updateItemDescription(
-            testId,
-            "FP-TS is worth leanring since you write so much functional TypeScript",
-          ),
-        ),
-      ),
-    ),
-    State.execute(initialState),
-  )}`;
-}
+const editItem = (item: TodoItem) => {
+  return pipe(
+    State.modify(updateOptionalState(updateItem(item.id, () => item))),
+  );
+};
+
+const toggleItemDone = (id: ItemId) =>
+  updateItem(id, pipe(lenses.done.modify((s) => !s)));
+
+const toggleDone = (id: ItemId) =>
+  State.modify(updateOptionalState(toggleItemDone(id)));
+
+const isDone = (s: TodoItem) => s.done === true;
+const isTodo = (s: TodoItem) => !isDone(s);
+
+const getDoneList = () =>
+  State.gets<ListState, readonly TodoItem[]>(
+    flow(pick("todoList"), RA.filter(isDone)),
+  );
+
+const getTodoList = () =>
+  State.gets<ListState, readonly TodoItem[]>(
+    flow(pick("todoList"), RA.filter(isTodo)),
+  );
+
+const setAllDone = (done: boolean) => () => {
+  return pipe(State.modify(doneTraversable.set(done)));
+};
+
+export const useList = (props: ListState = { todoList: [] }) => {
+  const [list, setList] = React.useState<ListState>(props);
+
+  return {
+    todoList: pipe(getTodoList(), State.evaluate(list)),
+    doneList: pipe(getDoneList(), State.evaluate(list)),
+    editItem: flow(editItem, State.execute(list), setList),
+    toggleItemDone: flow(toggleDone, State.execute(list), setList),
+    toggleDone: flow(setAllDone(true), State.execute(list), setList),
+    toggleTodo: flow(setAllDone(false), State.execute(list), setList),
+  };
+};

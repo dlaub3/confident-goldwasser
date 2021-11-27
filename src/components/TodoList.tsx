@@ -5,11 +5,12 @@ import { EditItemDialog } from "./EditItemDialog";
 import * as O from "fp-ts/lib/Option";
 import { TodoItem as Item } from "../types";
 import { getDefaultItem } from "../helpers";
-
-const item1 = getDefaultItem();
+import { useList } from "../hooks/useList";
 
 export const TodoList = () => {
-  const [item, setItem] = React.useState<O.Option<Item>>(O.some(item1));
+  const [item, setItem] = React.useState<O.Option<Item>>(O.none);
+
+  const state = useList({ todoList: [getDefaultItem()] });
 
   const handleClose = () => {
     setItem(O.none);
@@ -18,10 +19,15 @@ export const TodoList = () => {
   return (
     <>
       <List dense>
-        <TodoItem item={item1} onEdit={() => setItem(O.some(item1))} />
+        {state.todoList.map((x) => (
+          <TodoItem item={x} onEdit={() => setItem(O.some(x))} />
+        ))}
+        {state.doneList.map((x) => (
+          <TodoItem item={x} onEdit={() => setItem(O.some(x))} />
+        ))}
       </List>
       <EditItemDialog
-        handleSave={() => {}}
+        handleSave={state.editItem}
         isOpen={O.isSome(item)}
         handleClose={handleClose}
         item={item}
