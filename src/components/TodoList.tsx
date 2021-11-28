@@ -5,32 +5,39 @@ import React from "react";
 import { TodoItem } from "./TodoItem";
 import List from "@mui/material/List";
 import { EditItemDialog } from "./EditItemDialog";
-import * as O from "fp-ts/lib/Option";
 import { TodoItem as Item } from "../types";
-import { getDefaultItem } from "../helpers";
 import { useList } from "../hooks/useList";
 import { coerceNewType } from "../utils";
 import { Box, Button, Grid, Paper, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { css } from "@emotion/react";
 import { RA, RD } from "../deps";
+import { useDefaultTodoItem } from "../hooks/useDefaultTodoItem";
 
 export const TodoList = () => {
   const [item, setItem] = React.useState<RD.RemoteData<string, Item>>(
     RD.initial,
   );
 
-  const state = useList({ todoList: [getDefaultItem()] });
+  const [request] = useDefaultTodoItem({ immidiate: false, setRd: setItem });
+
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const state = useList({ todoList: [] });
 
   const handleClose = () => {
     setItem(RD.initial);
+    setIsOpen(false);
   };
 
   const onToggleDone = (item: Item) => {
     return () => state.toggleItemDone(item.id);
   };
 
-  const onEdit = (x: Item) => () => setItem(RD.success(x));
+  const onEdit = (x: Item) => () => {
+    setItem(RD.success(x));
+    setIsOpen(true);
+  };
   const onDelete = (x: Item) => () => state.onDelete([x]);
 
   return (
@@ -50,7 +57,8 @@ export const TodoList = () => {
           `}
           title="Add Item"
           onClick={() => {
-            setItem(RD.success(getDefaultItem()));
+            setIsOpen(true);
+            request();
           }}
           aria-label="add"
           startIcon={<AddIcon />}
@@ -170,7 +178,7 @@ export const TodoList = () => {
       </Grid>
       <EditItemDialog
         handleSave={state.editItem}
-        isOpen={RD.isSuccess(item)}
+        isOpen={isOpen}
         handleClose={handleClose}
         item={item}
       />

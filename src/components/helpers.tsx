@@ -3,26 +3,24 @@ import Skeleton from "@mui/material/Skeleton";
 import { RD } from "../deps";
 import { RdRenderers, renderRemoteData } from "../helpers";
 
-export const PendingSkelleton = (
-  props: { width?: number | string; height?: number | string } = {
-    width: "100%",
-    height: "100%",
-  },
-) => {
+export const PendingSkelleton = (props: {
+  width?: number | string;
+  height?: number | string;
+}) => {
   const sx = {
     flex: 1,
     display: "flex",
     flexDirection: "column",
+    flexGrow: 1,
   } as const;
 
   return (
-    <Box sx={sx}>
-      <Skeleton
-        variant="rectangular"
-        width={props.width}
-        height={props.height}
-      />
-    </Box>
+    <Skeleton
+      sx={sx}
+      variant="rectangular"
+      width={props.width}
+      height={props.height}
+    />
   );
 };
 

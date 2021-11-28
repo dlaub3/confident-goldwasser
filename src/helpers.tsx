@@ -1,22 +1,19 @@
 import { ItemId } from "./newtypes";
 import { itemIdIso } from "./optics";
-import { v4 as uuidv4 } from "uuid";
 import tt from "io-ts-types";
 import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/lib/Option";
 import { TodoItem } from "./types";
 import { RD } from "./deps";
-import Skeleton from "@mui/material/Skeleton";
-import Box from "@mui/material/Box";
 
-export const newItemId = (): ItemId => {
-  return itemIdIso.wrap(uuidv4() as tt.NonEmptyString);
+export const newItemId = (s: tt.NonEmptyString): ItemId => {
+  return itemIdIso.wrap(s);
 };
 
-export const getDefaultItem = () =>
+export const getDefaultItem = (id: ItemId) =>
   ({
-    id: newItemId(),
-    title: "",
+    id,
+    title: "Title",
     done: false,
   } as TodoItem);
 
@@ -35,8 +32,8 @@ export type RdRenderers<E, T> = [
 
 export const renderRemoteData = <E, T>(
   rd: RD.RemoteData<E, T>,
-  onInitial: RdRenderers<E, T>[0] = () => <></>,
-  onPending: RdRenderers<E, T>[1] = () => <></>,
-  onFailure: RdRenderers<E, T>[2] = () => <></>,
+  onInitial: RdRenderers<E, T>[0],
+  onPending: RdRenderers<E, T>[1],
+  onFailure: RdRenderers<E, T>[2],
   onSuccess: RdRenderers<E, T>[3],
 ) => pipe(rd, RD.fold(onInitial, onPending, onFailure, onSuccess));
