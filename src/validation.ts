@@ -1,4 +1,4 @@
-import { E, flow, pipe, RNEA, Str, Ap, Mn, identity } from "./deps";
+import { E, flow, pipe, RNEA, Str, Mn } from "./deps";
 import { TodoItem } from "./types";
 
 const min =
@@ -35,7 +35,7 @@ const ORvalidationMonoid = getORSemigroup<
     const ruleA = a.join("");
     const ruleB = b.join("");
 
-    return !Str.isEmpty(ruleB) && !Str.isEmpty(ruleB)
+    return !Str.isEmpty(ruleB) && !Str.isEmpty(ruleA)
       ? [`${ruleA} OR ${ruleB}`]
       : !Str.isEmpty(ruleA)
       ? [ruleA]
@@ -43,10 +43,6 @@ const ORvalidationMonoid = getORSemigroup<
   },
   empty: RNEA.of(""),
 });
-
-//const ORvalidationMonoid = Ap.getApplySemigroup(E.Apply)(orMn);
-
-//const ORvalidationMonoid = Ap.getApplySemigroup(RNEA.Apply)(f);
 
 const ANDvalidationMonoid = E.getValidationMonoid<
   RNEA.ReadonlyNonEmptyArray<string>,
@@ -63,6 +59,7 @@ const ANDvalidations = flow(
   composeValidation([notEmpty, min(5)]),
   RNEA.reduce(E.right(""), ANDvalidationMonoid.concat),
 );
+
 const ORvalidations = flow(
   composeValidation([firstCharCap, firstCharNum]),
   Mn.fold({ concat: ORvalidationMonoid.concat, empty: E.left(RNEA.of("")) }),

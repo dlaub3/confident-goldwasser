@@ -13,8 +13,13 @@ export default function App() {
         p: 2,
       }}
     >
-      <Typography sx={{ mt: 0, mb: 2 }} variant="h1" component="div">
-        Todo List
+      <Typography
+        className={"rainbow-text"}
+        sx={{ mt: 0, mb: 2 }}
+        variant="h1"
+        component="div"
+      >
+        FP-TS Todo List
       </Typography>
       <TodoList />
     </Box>

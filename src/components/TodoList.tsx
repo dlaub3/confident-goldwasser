@@ -71,7 +71,6 @@ export const TodoList = () => {
         >
           <Paper
             variant="outlined"
-            elevation={3}
             sx={{
               p: 2,
               gap: 2,
@@ -81,7 +80,11 @@ export const TodoList = () => {
             }}
           >
             <Box display="flex" justifyContent="space-between">
-              <Typography variant="h4" component="h2">
+              <Typography
+                variant="h4"
+                component="h2"
+                sx={{ color: "#000000BB", fontWeight: "bolder" }}
+              >
                 TODO
               </Typography>
 
@@ -118,7 +121,6 @@ export const TodoList = () => {
         >
           <Paper
             variant="outlined"
-            elevation={3}
             sx={{
               p: 2,
               gap: 2,
@@ -128,7 +130,11 @@ export const TodoList = () => {
             }}
           >
             <Box display="flex" justifyContent="space-between">
-              <Typography variant="h4" component="h2">
+              <Typography
+                variant="h4"
+                component="h2"
+                sx={{ color: "#000000BB", fontWeight: "bolder" }}
+              >
                 DONE
               </Typography>
 
