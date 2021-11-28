@@ -1,12 +1,12 @@
 import React from "react";
 import { ListState, TodoItem } from "../types";
 import { lenses } from "../optics";
-import { O, RA, pipe, monocle, State } from "../deps";
+import { O, RA, pipe, monocle, State, Str } from "../deps";
 import { findFirst, modifyOption } from "monocle-ts/lib/Optional";
 import { flow, identity } from "fp-ts/lib/function";
 import { ItemId } from "../newtypes";
-import { pick } from "../utils";
-
+import { coerceNewType, pick } from "../utils";
+import { contramap } from "fp-ts/lib/Eq";
 const { Lens, Optional, fromTraversable } = monocle;
 
 const todoListL = Lens.fromProp<ListState>()("todoList");
@@ -64,6 +64,27 @@ const updateOrInsert = (item: TodoItem) => {
   );
 };
 
+const findItemById = pipe(
+  Str.Eq,
+  contramap<string, TodoItem>((s) => coerceNewType(s.id)),
+  RA.elem,
+);
+
+const isFalse = (x: boolean): x is false => x === false;
+const isTrue = (x: boolean): x is true => x === true;
+
+const deleteItems = (xs: Array<TodoItem>) => {
+  return pipe(
+    State.modify<ListState>(
+      todoListL.modify((list) =>
+        pipe(
+          list,
+          RA.filter((t) => pipe(xs, findItemById(t), isFalse)),
+        ),
+      ),
+    ),
+  );
+};
 const toggleItemDone = (id: ItemId) =>
   updateItem(id, pipe(lenses.done.modify((s) => !s)));
 
@@ -94,6 +115,7 @@ export const useList = (props: ListState = { todoList: [] }) => {
     todoList: pipe(getTodoList(), State.evaluate(list)),
     doneList: pipe(getDoneList(), State.evaluate(list)),
     editItem: flow(updateOrInsert, State.execute(list), setList),
+    onDelete: flow(deleteItems, State.execute(list), setList),
     toggleItemDone: flow(toggleDone, State.execute(list), setList),
     toggleDone: flow(setAllDone(true), State.execute(list), setList),
     toggleTodo: flow(setAllDone(false), State.execute(list), setList),

@@ -4,19 +4,27 @@ import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
 import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 export const TodoItem = (props: {
   item: Item;
   onEdit: () => void;
+  onDelete: () => void;
   onToggleDone: () => void;
 }) => {
   return (
     <ListItem
       secondaryAction={
-        <IconButton onClick={props.onEdit} edge="end" aria-label="edit">
-          <EditIcon />
-        </IconButton>
+        props.item.done ? (
+          <IconButton onClick={props.onDelete} edge="end" aria-label="edit">
+            <DeleteIcon />
+          </IconButton>
+        ) : (
+          <IconButton onClick={props.onEdit} edge="end" aria-label="edit">
+            <EditIcon />
+          </IconButton>
+        )
       }
     >
       <ListItemAvatar>

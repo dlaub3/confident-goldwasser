@@ -29,6 +29,7 @@ export const TodoList = () => {
   };
 
   const onEdit = (x: Item) => () => setItem(O.some(x));
+  const onDelete = (x: Item) => () => state.onDelete([x]);
 
   return (
     <div
@@ -106,6 +107,7 @@ export const TodoList = () => {
                   key={coerceNewType(x.id)}
                   item={x}
                   onEdit={onEdit(x)}
+                  onDelete={onDelete(x)}
                   onToggleDone={onToggleDone(x)}
                 />
               ))}
@@ -156,6 +158,7 @@ export const TodoList = () => {
                   key={coerceNewType(x.id)}
                   item={x}
                   onEdit={onEdit(x)}
+                  onDelete={onDelete(x)}
                   onToggleDone={onToggleDone(x)}
                 />
               ))}
