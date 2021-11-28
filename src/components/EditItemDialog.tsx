@@ -8,7 +8,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Box from "@mui/material/Box";
 import { TodoItem } from "../types";
 import * as O from "fp-ts/lib/Option";
-import { pipe, constVoid } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/lib/function";
 import FormHelperText from "@mui/material/FormHelperText";
 import { renderOption } from "../helpers";
 import { lenses } from "../optics";
@@ -91,11 +91,16 @@ export const EditItemDialog = (props: {
   return renderOption(item, (item) => (
     <Dialog open={props.isOpen} onClose={handleClose} sx={{ p: 4, gap: 2 }}>
       <DialogTitle>Edit: {item.title}</DialogTitle>
-      <DialogContent sx={{ p: 4 }}>
+      <DialogContent sx={{ p: 4, width: "55ch" }}>
         <Box
           component="form"
           sx={{
-            "& .MuiTextField-root": { m: 1, width: "55ch" },
+            "& .MuiTextField-root": {
+              m: 1,
+            },
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
           }}
           noValidate
           autoComplete="off"
@@ -111,17 +116,24 @@ export const EditItemDialog = (props: {
             aria-describedby="component-error-text"
             error={isError}
           />
-          {renderOption(errors, (messages) =>
-            pipe(
-              messages,
-              RNEA.map((msg) => (
-                <FormHelperText error={isError} id="component-error-text">
-                  {msg}
-                </FormHelperText>
-              )),
-              (xs) => <>{xs}</>,
-            ),
-          )}
+          <FormHelperText
+            sx={{ p: 2 }}
+            error={isError}
+            id="component-error-text"
+          >
+            {renderOption(errors, (messages) =>
+              pipe(
+                messages,
+                RNEA.mapWithIndex((i, msg) => (
+                  <React.Fragment key={i}>
+                    <span>-{msg}</span>
+                    <br />
+                  </React.Fragment>
+                )),
+                (xs) => <>{xs}</>,
+              ),
+            )}
+          </FormHelperText>
 
           <TextField
             label="Description"

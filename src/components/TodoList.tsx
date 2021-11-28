@@ -35,27 +35,51 @@ export const TodoList = () => {
       css={css`
         display: flex;
         flex-flow: column nowrap;
+        flex: 1;
+        flex-grow: 1;
       `}
     >
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <Button
-            css={css`
-              align-self: flex-end;
-              margin-right: 0;
-            `}
-            title="Add Item"
-            onClick={() => {
-              setItem(O.some(getDefaultItem()));
+      <Box>
+        <Button
+          css={css`
+            align-self: flex-end;
+            margin-right: 0;
+          `}
+          title="Add Item"
+          onClick={() => {
+            setItem(O.some(getDefaultItem()));
+          }}
+          aria-label="add"
+          startIcon={<AddIcon />}
+        >
+          Add Todo Item
+        </Button>
+      </Box>
+      <Grid
+        container
+        spacing={2}
+        display={"flex"}
+        flex={1}
+        flexDirection={"row"}
+      >
+        <Grid
+          item
+          xs={6}
+          display={"flex"}
+          flexDirection={"column"}
+          flexGrow={1}
+        >
+          <Paper
+            variant="outlined"
+            elevation={3}
+            sx={{
+              p: 2,
+              gap: 2,
+              display: "flex",
+              flexDirection: "column",
+              flexGrow: 1,
             }}
-            aria-label="add"
-            startIcon={<AddIcon />}
           >
-            Add Todo Item
-          </Button>
-        </Grid>
-        <Grid item xs={6}>
-          <Paper variant="outlined" elevation={3} sx={{ p: 2, gap: 2 }}>
             <Box display="flex" justifyContent="space-between">
               <Typography variant="h4" component="h2">
                 TODO
@@ -85,8 +109,24 @@ export const TodoList = () => {
             </List>
           </Paper>
         </Grid>
-        <Grid item xs={6}>
-          <Paper variant="outlined" elevation={3} sx={{ p: 2, gap: 2 }}>
+        <Grid
+          item
+          xs={6}
+          display={"flex"}
+          flexDirection={"column"}
+          flexGrow={1}
+        >
+          <Paper
+            variant="outlined"
+            elevation={3}
+            sx={{
+              p: 2,
+              gap: 2,
+              display: "flex",
+              flexDirection: "column",
+              flexGrow: 1,
+            }}
+          >
             <Box display="flex" justifyContent="space-between">
               <Typography variant="h4" component="h2">
                 DONE

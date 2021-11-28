@@ -1,5 +1,4 @@
-import * as E from "fp-ts/Either";
-import { Mn, Ap, Apl, pipe, RA, RNEA, Str, A } from "./deps";
+import { E, flow, pipe, RNEA, Str, Ap, Mn, identity } from "./deps";
 import { TodoItem } from "./types";
 
 const min =
@@ -18,22 +17,59 @@ const firstCharCap = (s: string): E.Either<string, string> =>
 const firstCharNum = (s: string): E.Either<string, string> =>
   /^[0-9]/.test(s) ? E.right(s) : E.left("must BEGIN with a number");
 
+const getORSemigroup = <A, B>(leftMn: Mn.Monoid<A>) => ({
+  concat: (a: E.Either<A, B>, b: E.Either<A, B>): E.Either<A, B> => {
+    return E.isRight(a)
+      ? a
+      : E.isRight(b)
+      ? b
+      : E.left(leftMn.concat(a.left, b.left));
+  },
+});
+
+const ORvalidationMonoid = getORSemigroup<
+  RNEA.ReadonlyNonEmptyArray<string>,
+  string
+>({
+  concat: (a, b) => {
+    const ruleA = a.join("");
+    const ruleB = b.join("");
+
+    return !Str.isEmpty(ruleB) && !Str.isEmpty(ruleB)
+      ? [`${ruleA} OR ${ruleB}`]
+      : !Str.isEmpty(ruleA)
+      ? [ruleA]
+      : [ruleB];
+  },
+  empty: RNEA.of(""),
+});
+
+//const ORvalidationMonoid = Ap.getApplySemigroup(E.Apply)(orMn);
+
+//const ORvalidationMonoid = Ap.getApplySemigroup(RNEA.Apply)(f);
+
+const ANDvalidationMonoid = E.getValidationMonoid<
+  RNEA.ReadonlyNonEmptyArray<string>,
+  string
+>(RNEA.getSemigroup(), Str.Monoid);
+
 const composeValidation =
   (xs: RNEA.ReadonlyNonEmptyArray<(s: string) => E.Either<string, string>>) =>
   (s: string) => {
     return pipe(xs, RNEA.ap([s]), RNEA.map(E.mapLeft(RNEA.of)));
   };
 
+const ANDvalidations = flow(
+  composeValidation([notEmpty, min(5)]),
+  RNEA.reduce(E.right(""), ANDvalidationMonoid.concat),
+);
+const ORvalidations = flow(
+  composeValidation([firstCharCap, firstCharNum]),
+  Mn.fold({ concat: ORvalidationMonoid.concat, empty: E.left(RNEA.of("")) }),
+);
+
 export const validate = (v: TodoItem) =>
   pipe(
-    v.title.trim(),
-    composeValidation([notEmpty, min(5), firstCharCap]),
-    RNEA.reduce(
-      E.right(v.title.trim()),
-      E.getValidationMonoid<RNEA.ReadonlyNonEmptyArray<string>, string>(
-        RNEA.getSemigroup(),
-        Str.Monoid,
-      ).concat,
-    ),
+    ANDvalidationMonoid.concat(ANDvalidations(v.title), ORvalidations(v.title)),
     E.map(() => v),
   );
