@@ -16,3 +16,4 @@ export * as Apl from "fp-ts/lib/Applicative";
 export * as Mn from "fp-ts/lib/Monoid";
 export * as Semi from "fp-ts/lib/Semigroup";
 export * as Str from "fp-ts/lib/string";
+export * as RD from "@devexperts/remote-data-ts";

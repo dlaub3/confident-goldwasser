@@ -14,10 +14,12 @@ import { renderOption } from "../helpers";
 import { lenses } from "../optics";
 import { match } from "ts-pattern";
 import { validate } from "../validation";
-import { E, RNEA } from "../deps";
+import { E, RD, RNEA } from "../deps";
+import { ErrorPage, PendingSkelleton, RendeRemoteData } from "./helpers";
 
 export const EditItemDialog = (props: {
-  item: O.Option<TodoItem>;
+  loading?: boolean;
+  item: RD.RemoteData<string, TodoItem>;
   handleSave: (x: TodoItem) => void;
   isOpen: boolean;
   handleClose: () => void;
@@ -30,7 +32,9 @@ export const EditItemDialog = (props: {
     props.handleClose();
   };
 
-  const [item, updateItem] = React.useState<O.Option<TodoItem>>(props.item);
+  const [item, updateItem] = React.useState<RD.RemoteData<string, TodoItem>>(
+    props.item,
+  );
 
   React.useEffect(() => {
     updateItem(props.item);
@@ -51,7 +55,7 @@ export const EditItemDialog = (props: {
 
     if (O.isSome(errors)) {
       pipe(
-        item,
+        RD.toOption(item),
         O.map(setField),
         handleValidation,
         E.fold(
@@ -61,7 +65,7 @@ export const EditItemDialog = (props: {
       );
     }
 
-    updateItem(O.map(setField));
+    updateItem(RD.map(setField));
   };
 
   const handleValidation = (item: O.Option<TodoItem>) => {
@@ -74,7 +78,7 @@ export const EditItemDialog = (props: {
 
   const handleSave = () => {
     pipe(
-      item,
+      RD.toOption(item),
       handleValidation,
       E.fold(
         (xs) => setErrors(O.some(xs)),
@@ -88,71 +92,84 @@ export const EditItemDialog = (props: {
 
   const isError = O.isSome(errors);
 
-  return renderOption(item, (item) => (
-    <Dialog open={props.isOpen} onClose={handleClose} sx={{ p: 4, gap: 2 }}>
-      <DialogTitle>Edit: {item.title}</DialogTitle>
-      <DialogContent sx={{ p: 4, width: "55ch" }}>
-        <Box
-          component="form"
-          sx={{
-            "& .MuiTextField-root": {
-              m: 1,
-            },
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-          }}
-          noValidate
-          autoComplete="off"
-        >
-          <TextField
-            label="Title"
-            placeholder="Enter Title"
-            multiline
-            variant="filled"
-            value={item.title}
-            name="title"
-            onChange={handleChange}
-            aria-describedby="component-error-text"
-            error={isError}
-          />
-          <FormHelperText
-            sx={{ p: 2 }}
-            error={isError}
-            id="component-error-text"
+  return (
+    <RendeRemoteData rd={item}>
+      {[
+        () => <></>,
+        () => <PendingSkelleton />,
+        (e) => <ErrorPage>{e}</ErrorPage>,
+        (item) => (
+          <Dialog
+            open={props.isOpen}
+            onClose={handleClose}
+            sx={{ p: 4, gap: 2 }}
           >
-            {renderOption(errors, (messages) =>
-              pipe(
-                messages,
-                RNEA.mapWithIndex((i, msg) => (
-                  <React.Fragment key={i}>
-                    <span>-{msg}</span>
-                    <br />
-                  </React.Fragment>
-                )),
-                (xs) => <>{xs}</>,
-              ),
-            )}
-          </FormHelperText>
+            <DialogTitle>Edit: {item.title}</DialogTitle>
+            <DialogContent sx={{ p: 4, width: "55ch" }}>
+              <Box
+                component="form"
+                sx={{
+                  "& .MuiTextField-root": {
+                    m: 1,
+                  },
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                }}
+                noValidate
+                autoComplete="off"
+              >
+                <TextField
+                  label="Title"
+                  placeholder="Enter Title"
+                  multiline
+                  variant="filled"
+                  value={item.title}
+                  name="title"
+                  onChange={handleChange}
+                  aria-describedby="component-error-text"
+                  error={isError}
+                />
+                <FormHelperText
+                  sx={{ p: 2 }}
+                  error={isError}
+                  id="component-error-text"
+                >
+                  {renderOption(errors, (messages) =>
+                    pipe(
+                      messages,
+                      RNEA.mapWithIndex((i, msg) => (
+                        <React.Fragment key={i}>
+                          <span>-{msg}</span>
+                          <br />
+                        </React.Fragment>
+                      )),
+                      (xs) => <>{xs}</>,
+                    ),
+                  )}
+                </FormHelperText>
 
-          <TextField
-            label="Description"
-            name="description"
-            placeholder={"Enter Description"}
-            multiline
-            rows={4}
-            value={item.description}
-            variant="filled"
-            onChange={handleChange}
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose}>Cancel</Button>
-        <Button disabled={isError} onClick={handleSave}>
-          Save
-        </Button>
-      </DialogActions>
-    </Dialog>
-  ));
+                <TextField
+                  label="Description"
+                  name="description"
+                  placeholder={"Enter Description"}
+                  multiline
+                  rows={4}
+                  value={item.description}
+                  variant="filled"
+                  onChange={handleChange}
+                />
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose}>Cancel</Button>
+              <Button disabled={isError} onClick={handleSave}>
+                Save
+              </Button>
+            </DialogActions>
+          </Dialog>
+        ),
+      ]}
+    </RendeRemoteData>
+  );
 };

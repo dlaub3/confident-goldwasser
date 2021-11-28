@@ -13,22 +13,24 @@ import { coerceNewType } from "../utils";
 import { Box, Button, Grid, Paper, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { css } from "@emotion/react";
-import { RA } from "../deps";
+import { RA, RD } from "../deps";
 
 export const TodoList = () => {
-  const [item, setItem] = React.useState<O.Option<Item>>(O.none);
+  const [item, setItem] = React.useState<RD.RemoteData<string, Item>>(
+    RD.initial,
+  );
 
   const state = useList({ todoList: [getDefaultItem()] });
 
   const handleClose = () => {
-    setItem(O.none);
+    setItem(RD.initial);
   };
 
   const onToggleDone = (item: Item) => {
     return () => state.toggleItemDone(item.id);
   };
 
-  const onEdit = (x: Item) => () => setItem(O.some(x));
+  const onEdit = (x: Item) => () => setItem(RD.success(x));
   const onDelete = (x: Item) => () => state.onDelete([x]);
 
   return (
@@ -48,7 +50,7 @@ export const TodoList = () => {
           `}
           title="Add Item"
           onClick={() => {
-            setItem(O.some(getDefaultItem()));
+            setItem(RD.success(getDefaultItem()));
           }}
           aria-label="add"
           startIcon={<AddIcon />}
@@ -168,7 +170,7 @@ export const TodoList = () => {
       </Grid>
       <EditItemDialog
         handleSave={state.editItem}
-        isOpen={O.isSome(item)}
+        isOpen={RD.isSuccess(item)}
         handleClose={handleClose}
         item={item}
       />
