@@ -1,5 +1,4 @@
-import { Highlighter } from "@catpic/console-highlighter";
-import { Newtype } from "newtype-ts";
+import { O, pipe, RD, NT, Highlighter } from "./deps";
 
 const highlighter = new Highlighter({ theme: "dracula" });
 
@@ -10,7 +9,7 @@ export const pick =
   <S extends { [k in K]: unknown }>(struct: S) =>
     struct[key];
 
-export const coerceNewType = <T extends unknown>(x: Newtype<unknown, T>) =>
+export const coerceNewType = <T extends unknown>(x: NT.Newtype<unknown, T>) =>
   x as unknown as T;
 
 export const tap =
@@ -25,6 +24,9 @@ export const tap =
     return x;
   };
 
+export const isFalse = (x: boolean): x is false => x === false;
+export const isTrue = (x: boolean): x is true => x === true;
+
 export const isNullaryFn = (x: Function): x is <T>() => T => x.length === 0;
 
 export const isUnaryFn = (x: Function): x is <A, B>(x: A) => B =>
@@ -32,14 +34,27 @@ export const isUnaryFn = (x: Function): x is <A, B>(x: A) => B =>
 
 const getWindowEnv = (key: string) => (window as any)?.__ENV__?.[key];
 
-export const logWithEnv = (key: string) => ({
-  info: <T>(x: T) => {
-    getWindowEnv(key) === true && console.info(x);
-  },
-  warn: <T>(x: T) => {
-    getWindowEnv(key) === true && console.warn(x);
-  },
-  error: <T>(x: T) => {
-    getWindowEnv(key) === true && console.error(x);
-  },
-});
+export const runWithEnv = (key: string, fn: () => void) => {
+  getWindowEnv(key) === true && fn();
+};
+
+export const renderOption = <T>(
+  option: O.Option<T>,
+  onSome: (x: T) => JSX.Element,
+  onNone: () => JSX.Element | null = () => null,
+) => pipe(option, O.fold(onNone, onSome));
+
+export type RdRenderers<E, T> = [
+  onInitial: () => JSX.Element,
+  onPending: () => JSX.Element,
+  onFailure: (e: E) => JSX.Element,
+  onSuccess: (x: T) => JSX.Element,
+];
+
+export const renderRemoteData = <E, T>(
+  rd: RD.RemoteData<E, T>,
+  onInitial: RdRenderers<E, T>[0],
+  onPending: RdRenderers<E, T>[1],
+  onFailure: RdRenderers<E, T>[2],
+  onSuccess: RdRenderers<E, T>[3],
+) => pipe(rd, RD.fold(onInitial, onPending, onFailure, onSuccess));

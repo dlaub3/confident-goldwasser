@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import Skeleton from "@mui/material/Skeleton";
 import { RD } from "../deps";
-import { RdRenderers, renderRemoteData } from "../helpers";
+import { RdRenderers, renderRemoteData } from "../utils";
 
 export const PendingSkelleton = (props: {
   width?: number | string;

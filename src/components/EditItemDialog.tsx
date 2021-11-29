@@ -6,16 +6,18 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import Box from "@mui/material/Box";
-import { TodoItem } from "../types";
-import * as O from "fp-ts/lib/Option";
-import { pipe } from "fp-ts/lib/function";
 import FormHelperText from "@mui/material/FormHelperText";
-import { renderOption } from "../helpers";
-import { lenses } from "../optics";
 import { match } from "ts-pattern";
+import { TodoItem } from "../types";
+import { renderOption } from "../utils";
+import * as optics from "../optics";
 import { validate } from "../validation";
-import { E, RD, RNEA } from "../deps";
-import { ErrorPage, PendingSkelleton, RendeRemoteData } from "./helpers";
+import { O, pipe, E, RD, RNEA, Str } from "../deps";
+import {
+  ErrorPage,
+  PendingSkelleton,
+  RendeRemoteData,
+} from "./helperComponents";
 
 export const EditItemDialog = (props: {
   loading?: boolean;
@@ -28,13 +30,13 @@ export const EditItemDialog = (props: {
     O.Option<RNEA.ReadonlyNonEmptyArray<string>>
   >(O.none);
 
-  const handleClose = () => {
-    props.handleClose();
-  };
-
   const [item, updateItem] = React.useState<RD.RemoteData<string, TodoItem>>(
     props.item,
   );
+
+  const handleClose = () => {
+    props.handleClose();
+  };
 
   React.useEffect(() => {
     updateItem(props.item);
@@ -46,10 +48,10 @@ export const EditItemDialog = (props: {
 
     const setField = match(field)
       .with("title", () => {
-        return lenses.title.set(value);
+        return optics.title.set(value);
       })
       .with("description", () => {
-        return lenses.description.set(value);
+        return optics.description.set(value);
       })
       .exhaustive();
 
@@ -71,7 +73,9 @@ export const EditItemDialog = (props: {
   const handleValidation = (item: O.Option<TodoItem>) => {
     return pipe(
       item,
-      E.fromOption<RNEA.ReadonlyNonEmptyArray<string>>(() => ["None"]),
+      E.fromOption<RNEA.ReadonlyNonEmptyArray<string>>(() => [
+        `item is O.None<TodoItem>`,
+      ]),
       E.chain(validate),
     );
   };

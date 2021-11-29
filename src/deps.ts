@@ -17,3 +17,7 @@ export * as Mn from "fp-ts/lib/Monoid";
 export * as Semi from "fp-ts/lib/Semigroup";
 export * as Str from "fp-ts/lib/string";
 export * as RD from "@devexperts/remote-data-ts";
+export * as NT from "newtype-ts";
+export * from "@catpic/console-highlighter";
+export * as IOTS from "io-ts";
+export * as IOTST from "io-ts-types";

@@ -1,3 +1,6 @@
+/** @jsxRuntime classic */
+/** @jsx jsx */
+import { css, jsx } from "@emotion/react";
 import { TodoItem as Item } from "../types";
 import ListItem from "@mui/material/ListItem";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
@@ -17,7 +20,16 @@ export const TodoItem = (props: {
     <ListItem
       secondaryAction={
         props.item.done ? (
-          <IconButton onClick={props.onDelete} edge="end" aria-label="edit">
+          <IconButton
+            css={css`
+              :hover svg {
+                fill: crimson;
+              }
+            `}
+            onClick={props.onDelete}
+            edge="end"
+            aria-label="edit"
+          >
             <DeleteIcon />
           </IconButton>
         ) : (
@@ -32,9 +44,17 @@ export const TodoItem = (props: {
           onClick={props.onToggleDone}
           edge="end"
           aria-label="toggle done"
+          css={css`
+            :hover svg {
+              fill: ${!props.item.done ? "#c850c0" : "grey"};
+            }
+            svg {
+              fill: ${props.item.done ? "#c850c0" : "grey"};
+            }
+          `}
         >
           {props.item.done ? (
-            <CheckCircleIcon color="success" />
+            <CheckCircleIcon />
           ) : (
             <CheckCircleIcon color="action" />
           )}

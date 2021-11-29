@@ -1,2 +1,2 @@
-- Validation
-- Env w/ RTE for UUID
+- [ x ] Validation
+- [ x ] Env w/ RTE for UUID

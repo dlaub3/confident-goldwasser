@@ -1,18 +1,17 @@
-import * as tt from "io-ts-types";
-import * as t from "io-ts";
+import { IOTS, IOTST } from "./deps";
 import { ItemId } from "./newtypes";
 import { TodoItem } from "./types";
 
-export const itemIdC = tt.fromNewtype<ItemId>(tt.NonEmptyString);
+export const itemIdC = IOTST.fromNewtype<ItemId>(IOTST.NonEmptyString);
 
-export const itemC = t.type({
+export const itemC = IOTS.type({
   id: itemIdC,
-  title: t.string,
-  description: t.union([t.string, t.undefined]),
-  done: t.boolean,
+  title: IOTS.string,
+  description: IOTS.union([IOTS.string, IOTS.undefined]),
+  done: IOTS.boolean,
 });
 
-export const todoItemC = t.brand(
+export const todoItemC = IOTS.brand(
   itemC,
   (x: unknown): x is TodoItem => itemC.is(x),
   "TodoItem",
