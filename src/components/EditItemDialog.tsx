@@ -12,7 +12,7 @@ import { TodoItem } from "../types";
 import { renderOption } from "../utils";
 import * as optics from "../optics";
 import { validate } from "../validation";
-import { O, pipe, E, RD, RNEA, Str } from "../deps";
+import { O, pipe, E, RD, RNEA } from "../deps";
 import {
   ErrorPage,
   PendingSkelleton,

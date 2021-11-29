@@ -32,7 +32,7 @@ export const isNullaryFn = (x: Function): x is <T>() => T => x.length === 0;
 export const isUnaryFn = (x: Function): x is <A, B>(x: A) => B =>
   x.length === 1;
 
-const getWindowEnv = (key: string) => (window as any)?.__ENV__?.[key];
+export const getWindowEnv = (key: string) => (window as any)?.__ENV__?.[key];
 
 export const runWithEnv = (key: string, fn: () => void) => {
   getWindowEnv(key) === true && fn();

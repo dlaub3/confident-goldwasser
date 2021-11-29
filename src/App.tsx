@@ -13,7 +13,7 @@ import { useList } from "./hooks/useList";
 import { PageLayout } from "./components/PageLayout";
 import { EditItemDialog } from "./components/EditItemDialog";
 import { TodoItem as Item } from "./types";
-import { coerceNewType } from "./utils";
+import { coerceNewType, getWindowEnv } from "./utils";
 import { useToggle } from "./hooks/useToggle";
 import { getUUID } from "./api";
 import { newItemId } from "./optics";
@@ -22,7 +22,7 @@ import { ItemId } from "./newtypes";
 export const getDefaultItem = (id: ItemId) =>
   ({
     id,
-    title: "Title",
+    title: getWindowEnv("dev") === true ? "Dev Mode On" : "",
     done: false,
   } as Item);
 
