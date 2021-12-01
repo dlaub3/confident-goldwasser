@@ -3,18 +3,20 @@
 import { jsx } from "@emotion/react";
 import React from "react";
 import List from "@mui/material/List";
-import { Box, Button, Typography } from "@mui/material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 import AddIcon from "@mui/icons-material/Add";
 import { css } from "@emotion/react";
 import { TodoItem } from "./components/TodoItem";
 import { RA, RD, IOTST, flow } from "./deps";
-import { useRemoteData } from "./hooks/useDefaultTodoItem";
+import { useRemoteDataRequest } from "./hooks/useRemoteDataRequest";
+import { useSwitch } from "./hooks/useSwitch";
 import { useList } from "./hooks/useList";
 import { PageLayout } from "./components/PageLayout";
 import { EditItemDialog } from "./components/EditItemDialog";
 import { TodoItem as Item } from "./types";
 import { coerceNewType, getWindowEnv } from "./utils";
-import { useToggle } from "./hooks/useToggle";
 import { getUUID } from "./api";
 import { newItemId } from "./optics";
 import { ItemId } from "./newtypes";
@@ -27,25 +29,26 @@ export const getDefaultItem = (id: ItemId) =>
   } as Item);
 
 export default function App() {
-  const toggleEditModal = useToggle();
+  const toggleEditModal = useSwitch();
   const state = useList({ todoList: [] });
 
   const [item, setItem] = React.useState<RD.RemoteData<string, Item>>(
     RD.initial,
   );
 
-  const [request] = useRemoteData({
-    setRd: setItem,
-    request: getUUID,
+  /* TODO: This should handle parameterized requests Daniel Laubacher  Wed 01 Dec 2021 **/
+  const [request] = useRemoteDataRequest({
     immidiate: false,
-    onSuccess: flow(newItemId, getDefaultItem),
-    onFailure: (s: string) => `Failed to fetch UUID ${s}`,
+    request: getUUID,
+    setRemoteData: setItem,
     codec: IOTST.NonEmptyString,
+    onDevodeSuccess: flow(newItemId, getDefaultItem),
+    onDecodeFailure: (s: string) => `Failed to decode UUID ${s}`,
   });
 
   const handleEditModalClose = () => {
     setItem(RD.initial);
-    toggleEditModal.toggleOff();
+    toggleEditModal.switchOff();
   };
 
   const onToggleDone = (item: Item) => {
@@ -54,7 +57,7 @@ export default function App() {
 
   const onEdit = (x: Item) => () => {
     setItem(RD.success(x));
-    toggleEditModal.toggleOn();
+    toggleEditModal.switchOn();
   };
 
   const onDelete = (x: Item) => () => state.onDelete([x]);
@@ -86,7 +89,7 @@ export default function App() {
             `}
             title="Add Item"
             onClick={() => {
-              toggleEditModal.toggleOn();
+              toggleEditModal.switchOn();
               request();
             }}
             aria-label="add"

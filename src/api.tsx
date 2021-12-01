@@ -1,6 +1,4 @@
-import * as RTE from "fp-ts/lib/ReaderTaskEither";
-import * as TE from "fp-ts/lib/TaskEither";
-import { pipe, RD } from "./deps";
+import { pipe, RD, TE, RTE } from "./deps";
 import { HttpEnv, UUIDv4_URL } from "./env";
 import { runWithEnv } from "./utils";
 

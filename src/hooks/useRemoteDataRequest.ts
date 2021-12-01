@@ -1,27 +1,29 @@
 import React from "react";
-import { RD, pipe, E, IOTS } from "../deps";
+import { TE, RD, pipe, E, IOTS } from "../deps";
 import { useEnv } from "../EnvContext";
 import { HttpEnv } from "../env";
-import { TaskEither } from "fp-ts/lib/TaskEither";
 
-export const useRemoteData = <A, B, C, D>(props: {
-  request: (r: HttpEnv) => TaskEither<RD.RemoteFailure<A>, RD.RemoteSuccess<B>>;
+export const useRemoteDataRequest = <A, B, C, D>(props: {
+  request: (
+    r: HttpEnv,
+  ) => TE.TaskEither<RD.RemoteFailure<A>, RD.RemoteSuccess<B>>;
   immidiate?: boolean;
-  setRd: (x: RD.RemoteData<A, C>) => void;
-  onSuccess: (x: D) => C;
-  onFailure: (x: B) => A;
+  setRemoteData: (x: RD.RemoteData<A, C>) => void;
   codec: IOTS.Decoder<B, D>;
+  onDevodeSuccess: (x: D) => C;
+  onDecodeFailure: (x: B) => A;
 }) => {
   const env = useEnv();
 
   const request = () => {
-    props.setRd(RD.pending);
+    props.setRemoteData(RD.pending);
     props
       .request(env)()
       .then(
         E.fold(
           (x) => {
-            props.setRd(x);
+            // failed to fetch
+            props.setRemoteData(x);
           },
           (x) => {
             pipe(
@@ -32,18 +34,17 @@ export const useRemoteData = <A, B, C, D>(props: {
                   props.codec.decode,
                   E.fold(
                     () => {
-                      return RD.failure(props.onFailure(s));
+                      // failed to decode
+                      return RD.failure(props.onDecodeFailure(s));
                     },
                     (d) => {
-                      return RD.success(pipe(props.onSuccess(d)));
+                      return RD.success(pipe(props.onDevodeSuccess(d)));
                     },
                   ),
                 );
               }),
               (rd) => {
-                setTimeout(() => {
-                  props.setRd(rd);
-                }, 300);
+                props.setRemoteData(rd);
               },
             );
           },

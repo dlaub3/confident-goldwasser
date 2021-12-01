@@ -1,2 +1,3 @@
-- [ x ] Validation
-- [ x ] Env w/ RTE for UUID
+- [ ] use Prism
+- [ ] local storage helpers?
+

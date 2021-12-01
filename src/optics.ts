@@ -2,9 +2,11 @@ import type { ItemId } from "./newtypes";
 import { itemIdC } from "./codecs";
 import { ListState, TodoItem } from "./types";
 import { NT, IOTST, O, RA, pipe, monocle, identity } from "./deps";
-import { findFirst, modifyOption } from "monocle-ts/lib/Optional";
+import { findFirst, modifyOption } from "monocle-ts/Optional";
 
 export const { Lens, Optional, fromTraversable } = monocle;
+
+/* TODO: Refactor to pipeable API  Daniel Laubacher  Wed 01 Dec 2021 **/
 
 export const newItemId = (s: IOTST.NonEmptyString): ItemId => {
   return itemIdIso.wrap(s);
