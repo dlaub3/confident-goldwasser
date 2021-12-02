@@ -6,7 +6,7 @@ import { ItemId } from "../newtypes";
 import { coerceNewType, isFalse, pick } from "../utils";
 import { contramap } from "fp-ts/lib/Eq";
 import {
-  doneTraversable,
+  setDoneTraversable,
   todoListL,
   toggleItemDone,
   updateItem,
@@ -57,7 +57,7 @@ const getTodoList = () =>
   );
 
 const setAllDone = (done: boolean) => () => {
-  return pipe(State.modify(doneTraversable.set(done)));
+  return pipe(State.modify(setDoneTraversable(done)));
 };
 
 export const useList = (props: ListState = { todoList: [] }) => {

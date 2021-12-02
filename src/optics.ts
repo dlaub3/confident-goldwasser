@@ -4,9 +4,7 @@ import { ListState, TodoItem } from "./types";
 import { NT, IOTST, O, RA, pipe, monocle, identity } from "./deps";
 import { findFirst, modifyOption } from "monocle-ts/Optional";
 
-export const { Lens, Optional, fromTraversable } = monocle;
-
-/* TODO: Refactor to pipeable API  Daniel Laubacher  Wed 01 Dec 2021 **/
+export const { lens, traversal, Lens, Optional, fromTraversable } = monocle;
 
 export const newItemId = (s: IOTST.NonEmptyString): ItemId => {
   return itemIdIso.wrap(s);
@@ -15,15 +13,17 @@ export const newItemId = (s: IOTST.NonEmptyString): ItemId => {
 export const itemIdIso = NT.iso<ItemId>();
 export const itemIdPrism = NT.prism<ItemId>(itemIdC.is);
 
+export const itemL = lens.id<TodoItem>();
 export const done = Lens.fromProp<TodoItem>()("done");
 export const title = Lens.fromProp<TodoItem>()("title");
 export const description = Lens.fromProp<TodoItem>()("description");
-
 export const todoListL = Lens.fromProp<ListState>()("todoList");
 export const todoItemTraversal = fromTraversable(RA.Traversable)<TodoItem>();
 export const traversableTodoList =
   todoListL.composeTraversal(todoItemTraversal);
-export const doneTraversable = traversableTodoList.composeLens(done);
+//export const doneTraversable = traversableTodoList.composeLens(done);
+export const setDoneTraversable = (x: boolean) =>
+  pipe(traversableTodoList, traversal.composeLens(done), traversal.set(x));
 
 export const updateItem = (
   id: ItemId,
