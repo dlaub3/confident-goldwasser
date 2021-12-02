@@ -41,7 +41,7 @@ export default function App() {
     request: getUUID,
     setRemoteData: setItem,
     codec: IOTST.NonEmptyString,
-    onDevodeSuccess: flow(newItemId, getDefaultItem),
+    onDecodeSuccess: flow(newItemId, getDefaultItem),
     onDecodeFailure: (s: string) => `Failed to decode UUID ${s}`,
   });
 

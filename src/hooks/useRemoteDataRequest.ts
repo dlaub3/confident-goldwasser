@@ -11,7 +11,7 @@ export const useRemoteDataRequest = <A, B, C, D, E extends unknown[]>(props: {
   >;
   setRemoteData: (x: RD.RemoteData<A, C>) => void;
   codec: IOTS.Decoder<B, D>;
-  onDevodeSuccess: (x: D) => C;
+  onDecodeSuccess: (x: D) => C;
   onDecodeFailure: (x: B) => A;
 }) => {
   const env = useEnv();
@@ -34,7 +34,7 @@ export const useRemoteDataRequest = <A, B, C, D, E extends unknown[]>(props: {
                     return RD.failure(props.onDecodeFailure(s));
                   },
                   (d) => {
-                    return RD.success(pipe(props.onDevodeSuccess(d)));
+                    return RD.success(pipe(props.onDecodeSuccess(d)));
                   },
                 ),
               );
