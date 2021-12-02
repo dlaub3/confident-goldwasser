@@ -25,21 +25,17 @@ const updateOrInsert = (item: TodoItem) => {
   );
 };
 
-const findItemById = pipe(
-  Str.Eq,
-  contramap<string, TodoItem>((s) => coerceNewType(s.id)),
-  RA.elem,
-);
+const isItemInSet = (xs: TodoItem[]) => (item: TodoItem) =>
+  pipe(
+    Str.Eq,
+    contramap<string, TodoItem>((s) => coerceNewType(s.id)),
+    RA.elem,
+  )(item)(xs);
 
-const deleteItems = (xs: Array<TodoItem>) => {
+const deleteItems = (xs: TodoItem[]) => {
   return pipe(
     State.modify<ListState>(
-      todoListL.modify((list) =>
-        pipe(
-          list,
-          RA.filter((t) => pipe(xs, findItemById(t), isFalse)),
-        ),
-      ),
+      todoListL.modify(RA.filter(flow(isItemInSet(xs), isFalse))),
     ),
   );
 };

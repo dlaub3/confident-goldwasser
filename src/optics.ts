@@ -25,24 +25,12 @@ export const traversableTodoList =
   todoListL.composeTraversal(todoItemTraversal);
 export const doneTraversable = traversableTodoList.composeLens(done);
 
-export const todoListOptional = new Optional<
-  readonly TodoItem[],
-  readonly TodoItem[]
->(
-  function getOption(xs) {
-    return RA.isNonEmpty(xs) ? O.some(xs) : O.none;
-  },
-  function set(xs) {
-    return () => xs;
-  },
-);
-
 export const updateItem = (
   id: ItemId,
   fn: (() => TodoItem) | ((x: TodoItem) => TodoItem),
 ) =>
   pipe(
-    todoListL.composeOptional(todoListOptional),
+    todoListL.asOptional(),
     findFirst((x) => x.id === id),
     modifyOption(fn),
   );
