@@ -20,6 +20,7 @@ import { coerceNewType, getWindowEnv } from "./utils";
 import { getUUID } from "./api";
 import { newItemId } from "./optics";
 import { ItemId } from "./newtypes";
+import { UUIDv4_URL } from "./env";
 
 export const getDefaultItem = (id: ItemId) =>
   ({
@@ -36,9 +37,7 @@ export default function App() {
     RD.initial,
   );
 
-  /* TODO: This should handle parameterized requests Daniel Laubacher  Wed 01 Dec 2021 **/
-  const [request] = useRemoteDataRequest({
-    immidiate: false,
+  const { request } = useRemoteDataRequest({
     request: getUUID,
     setRemoteData: setItem,
     codec: IOTST.NonEmptyString,
@@ -90,7 +89,7 @@ export default function App() {
             title="Add Item"
             onClick={() => {
               toggleEditModal.switchOn();
-              request();
+              request(UUIDv4_URL);
             }}
             aria-label="add"
             startIcon={<AddIcon />}

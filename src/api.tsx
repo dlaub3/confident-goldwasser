@@ -4,20 +4,21 @@ import { runWithEnv } from "./utils";
 
 export const getUUID = pipe(
   RTE.ask<HttpEnv>(),
-  RTE.chainTaskEitherK((env) => {
+  RTE.map((env) => {
     runWithEnv("debug", () => console.info(env));
-    return TE.tryCatch<RD.RemoteFailure<string>, RD.RemoteSuccess<string>>(
-      async () => {
-        return env.client
-          .get(UUIDv4_URL)
-          .then((response) => response.text())
-          .then((x) => RD.success(x) as RD.RemoteSuccess<string>);
-      },
-      (reason) => {
-        const message = `Failed to fetch ${UUIDv4_URL}: ${reason}`;
-        runWithEnv("debug", () => console.error(message));
-        return RD.failure(message) as RD.RemoteFailure<string>;
-      },
-    );
+    return (URL: string) =>
+      TE.tryCatch<RD.RemoteFailure<string>, RD.RemoteSuccess<string>>(
+        async () => {
+          return env.client
+            .get(URL)
+            .then((response) => response.text())
+            .then((x) => RD.success(x) as RD.RemoteSuccess<string>);
+        },
+        (reason) => {
+          const message = `Failed to fetch ${UUIDv4_URL}: ${reason}`;
+          runWithEnv("debug", () => console.error(message));
+          return RD.failure(message) as RD.RemoteFailure<string>;
+        },
+      );
   }),
 );
