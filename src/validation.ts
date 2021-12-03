@@ -1,21 +1,39 @@
-import { RA, E, flow, pipe, RNEA, Str, Mn } from "./deps";
+import { E, flow, pipe, RNEA, Str, Mn } from "./deps";
+import { title } from "./optics";
 import { TodoItem } from "./types";
 
-const min =
-  (minLength: number) =>
-  (s: string): E.Either<string, string> =>
-    s.length >= minLength
-      ? E.right(s)
-      : E.left(`must HAVE at least ${minLength} characters`);
+const max = (maxLength: number) =>
+  E.fromPredicate(
+    (s: string) => s.length <= maxLength,
+    () => RNEA.of(`must BE LESS than ${maxLength} characters`),
+  );
 
-const notEmpty = (s: string): E.Either<string, string> =>
-  s === "" ? E.left(`must NOT BE empty`) : E.right(s);
+const min = (minLength: number) =>
+  E.fromPredicate(
+    (s: string) => s.length >= minLength,
+    () => RNEA.of(`must HAVE at least ${minLength} characters`),
+  );
 
-const firstCharCap = (s: string): E.Either<string, string> =>
-  /^[A-Z]/.test(s) ? E.right(s) : E.left("must BEGIN with a capitol letter");
+const notEmpty = E.fromPredicate(
+  (s: string) => s !== "",
+  () => RNEA.of(`must NOT BE empty`),
+);
 
-const firstCharNum = (s: string): E.Either<string, string> =>
-  /^[0-9]/.test(s) ? E.right(s) : E.left("must BEGIN with a number");
+const fstCharCap = E.fromPredicate(
+  (s: string) => /^[A-Z]/.test(s),
+  () => RNEA.of(`must BEGIN with a capitol letter`),
+);
+
+const fstCharNum = E.fromPredicate(
+  (s: string) => /^[0-9]/.test(s),
+  () => RNEA.of(`must BEGIN with a number`),
+);
+
+const secretcode = (secret: RegExp) =>
+  E.fromPredicate(
+    (s: string) => secret.test(s),
+    () => RNEA.of(`secret code MUST be valid`),
+  );
 
 const getEitherORMonoid = <A, B>(Mn: Mn.Monoid<A>) => ({
   concat: (a: E.Either<A, B>, b: E.Either<A, B>): E.Either<A, B> => {
@@ -33,8 +51,8 @@ const ORvalidationMonoid = getEitherORMonoid<
   string
 >({
   concat: (a, b) => {
-    const ruleA = a.join("");
-    const ruleB = b.join("");
+    const ruleA = a.join(" AND ");
+    const ruleB = b.join(" AND ");
 
     return !Str.isEmpty(ruleB) && !Str.isEmpty(ruleA)
       ? [`${ruleA} OR ${ruleB}`]
@@ -45,31 +63,49 @@ const ORvalidationMonoid = getEitherORMonoid<
   empty: RNEA.of(""),
 });
 
-const ANDvalidationMonoid = E.getValidationMonoid<
+export const ANDvalidationMonoid = E.getValidationMonoid<
   RNEA.ReadonlyNonEmptyArray<string>,
   string
 >(RNEA.getSemigroup(), Str.Monoid);
 
-const composeValidation =
-  (xs: RNEA.ReadonlyNonEmptyArray<(s: string) => E.Either<string, string>>) =>
-  (s: string) => {
-    return pipe(xs, RNEA.ap([s]), RNEA.map(E.mapLeft(RNEA.of)));
+export const composeValidation =
+  <A, B>(
+    xs: RNEA.ReadonlyNonEmptyArray<
+      (s: A) => E.Either<RNEA.ReadonlyNonEmptyArray<B>, A>
+    >,
+  ) =>
+  (s: A) => {
+    return pipe(xs, RNEA.ap([s]));
   };
 
-const ANDvalidations = flow(
-  composeValidation([notEmpty, min(5)]),
-  Mn.concatAll(ANDvalidationMonoid),
-);
+export const And = (
+  ...args: RNEA.ReadonlyNonEmptyArray<
+    (x: string) => E.Either<RNEA.ReadonlyNonEmptyArray<string>, string>
+  >
+): ((s: string) => E.Either<RNEA.ReadonlyNonEmptyArray<string>, string>) => {
+  return flow(composeValidation(args), Mn.concatAll(ANDvalidationMonoid));
+};
 
-const ORvalidations = flow(
-  composeValidation([firstCharCap, firstCharNum]),
-  Mn.concatAll(ORvalidationMonoid),
-);
+export const Or = (
+  ...args: RNEA.ReadonlyNonEmptyArray<
+    (x: string) => E.Either<RNEA.ReadonlyNonEmptyArray<string>, string>
+  >
+): ((s: string) => E.Either<RNEA.ReadonlyNonEmptyArray<string>, string>) => {
+  return flow(composeValidation(args), Mn.concatAll(ORvalidationMonoid));
+};
+
+const validateTitle = (item: TodoItem) =>
+  pipe(
+    title.get(item),
+    Or(
+      secretcode(/wombat/),
+      And(notEmpty, min(10), max(20), Or(fstCharNum, fstCharCap)),
+    ),
+  );
 
 export const validate = (v: TodoItem) =>
   pipe(
-    [ANDvalidations, ORvalidations],
-    RA.ap([v.title]),
-    Mn.concatAll(ANDvalidationMonoid),
+    v,
+    validateTitle,
     E.map(() => v),
   );
