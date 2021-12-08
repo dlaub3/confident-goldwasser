@@ -82,10 +82,10 @@ const between0and10 = And(min(1), max(9));
 const validateTitle = (item: TodoItem) =>
   pipe(
     title.get(item),
-    Or(
-      secretcode(/wombat/),
+    And(
       And(fstCharCap, fstCharNum),
       And(notEmpty, min(10), max(20), between0and10),
+      Or(secretcode(/wombat/), And(fstCharCap, fstCharNum)),
     ),
   );
 

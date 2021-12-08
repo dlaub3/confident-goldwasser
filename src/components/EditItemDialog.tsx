@@ -71,7 +71,7 @@ export const EditItemDialog = (props: {
     updateItem(RD.map(setField));
   };
 
-  const _handleValidationF = (item: O.Option<TodoItem>) => {
+  const handleValidationF = (item: O.Option<TodoItem>) => {
     return pipe(
       item,
       E.fromOption<RNEA.ReadonlyNonEmptyArray<string>>(() => [
@@ -92,7 +92,7 @@ export const EditItemDialog = (props: {
   const handleSave = () => {
     pipe(
       RD.toOption(item),
-      handleValidation,
+      handleValidationF,
       E.fold(
         (xs) => setErrors(O.some(xs)),
         (x) => {
