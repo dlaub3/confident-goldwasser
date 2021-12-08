@@ -12,6 +12,7 @@ import { TodoItem } from "../types";
 import { renderOption } from "../utils";
 import * as optics from "../optics";
 import { validate } from "../validation";
+import { validate as vFree } from "../validationFree";
 import { O, pipe, E, RD, RNEA } from "../deps";
 import {
   ErrorPage,
@@ -70,13 +71,21 @@ export const EditItemDialog = (props: {
     updateItem(RD.map(setField));
   };
 
-  const handleValidation = (item: O.Option<TodoItem>) => {
+  const _handleValidationF = (item: O.Option<TodoItem>) => {
     return pipe(
       item,
       E.fromOption<RNEA.ReadonlyNonEmptyArray<string>>(() => [
         `item is O.None<TodoItem>`,
       ]),
+      E.chain(vFree),
+    );
+  };
+  const handleValidation = (item: O.Option<TodoItem>) => {
+    return pipe(
+      item,
+      E.fromOption<string>(() => `item is O.None<TodoItem>`),
       E.chain(validate),
+      E.mapLeft(RNEA.of),
     );
   };
 

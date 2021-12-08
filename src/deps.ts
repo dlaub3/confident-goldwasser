@@ -26,4 +26,5 @@ export * as TE from "fp-ts/TaskEither";
 export * as RTE from "fp-ts/ReaderTaskEither";
 export * as RE from "fp-ts/ReaderEither";
 export * as R from "fp-ts/Reader";
-export * as Val from "fp-ts/ValidationT";
+export * as Alt from "fp-ts/Alt";
+export * as Trav from "fp-ts/Traversable";

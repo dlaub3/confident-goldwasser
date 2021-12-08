@@ -1,111 +1,69 @@
-import { E, flow, pipe, RNEA, Str, Mn } from "./deps";
+import { Semi, E, pipe, RNEA, Str, Alt, Apl, Mn } from "./deps";
 import { title } from "./optics";
 import { TodoItem } from "./types";
+import { tap } from "./utils";
 
-const max = (maxLength: number) =>
+export const max = (maxLength: number) =>
   E.fromPredicate(
     (s: string) => s.length <= maxLength,
-    () => RNEA.of(`must BE LESS than ${maxLength} characters`),
+    () => `must BE LESS than ${maxLength} characters`,
   );
 
-const min = (minLength: number) =>
+export const min = (minLength: number) =>
   E.fromPredicate(
     (s: string) => s.length >= minLength,
-    () => RNEA.of(`must HAVE at least ${minLength} characters`),
+    () => `must HAVE at least ${minLength} characters`,
   );
 
-const notEmpty = E.fromPredicate(
+export const notEmpty = E.fromPredicate(
   (s: string) => s !== "",
-  () => RNEA.of(`must NOT BE empty`),
+  () => `must NOT BE empty`,
 );
 
-const fstCharCap = E.fromPredicate(
+export const fstCharCap = E.fromPredicate(
   (s: string) => /^[A-Z]/.test(s),
-  () => RNEA.of(`must BEGIN with a capitol letter`),
+  () => `must BEGIN with a capitol letter`,
 );
 
-const fstCharNum = E.fromPredicate(
-  (s: string) => /^[0-9]/.test(s),
-  () => RNEA.of(`must BEGIN with a number`),
+export const fstCharNum = E.fromPredicate(
+  <S extends string>(s: S) => /^[0-9]/.test(s),
+  () => `must BEGIN with a number`,
 );
 
-const secretcode = (secret: RegExp) =>
+export const secretcode = (secret: RegExp) =>
   E.fromPredicate(
     (s: string) => secret.test(s),
-    () => RNEA.of(`secret code MUST be valid`),
+    () => `secret code MUST be valid`,
   );
 
-const getEitherORMonoid = <A, B>(Mn: Mn.Monoid<A>) => ({
-  concat: (a: E.Either<A, B>, b: E.Either<A, B>): E.Either<A, B> => {
-    return E.isRight(a)
-      ? a
-      : E.isRight(b)
-      ? b
-      : E.left(Mn.concat(a.left, b.left));
-  },
-  empty: E.left(Mn.empty),
-});
+type Validation = (s: string) => E.Either<string, string>;
 
-const ORvalidationMonoid = getEitherORMonoid<
-  RNEA.ReadonlyNonEmptyArray<string>,
-  string
->({
-  concat: (a, b) => {
-    const ruleA = a.join(" AND ");
-    const ruleB = b.join(" AND ");
+const And =
+  <T extends Validation>(...xs: RNEA.ReadonlyNonEmptyArray<T>) =>
+  (s: string) => {
+    const ApAnd = E.getApplicativeValidation(Str.Semigroup);
 
-    return !Str.isEmpty(ruleB) && !Str.isEmpty(ruleA)
-      ? [`${ruleA} OR ${ruleB}`]
-      : !Str.isEmpty(ruleA)
-      ? [ruleA]
-      : [ruleB];
-  },
-  empty: RNEA.of(""),
-});
-
-export const ANDvalidationMonoid = E.getValidationMonoid<
-  RNEA.ReadonlyNonEmptyArray<string>,
-  string
->(RNEA.getSemigroup(), Str.Monoid);
-
-export const composeValidation =
-  <A, B>(
-    xs: RNEA.ReadonlyNonEmptyArray<
-      (s: A) => E.Either<RNEA.ReadonlyNonEmptyArray<B>, A>
-    >,
-  ) =>
-  (s: A) => {
-    return pipe(xs, RNEA.ap([s]));
+    return pipe(
+      xs,
+      RNEA.ap([s]),
+      Mn.concatAll(Apl.getApplicativeMonoid(ApAnd)(Str.Monoid)),
+    );
   };
 
-export const And = (
-  ...args: RNEA.ReadonlyNonEmptyArray<
-    (x: string) => E.Either<RNEA.ReadonlyNonEmptyArray<string>, string>
-  >
-): ((s: string) => E.Either<RNEA.ReadonlyNonEmptyArray<string>, string>) => {
-  return flow(composeValidation(args), Mn.concatAll(ANDvalidationMonoid));
-};
-
-export const Or = (
-  ...args: RNEA.ReadonlyNonEmptyArray<
-    (x: string) => E.Either<RNEA.ReadonlyNonEmptyArray<string>, string>
-  >
-): ((s: string) => E.Either<RNEA.ReadonlyNonEmptyArray<string>, string>) => {
-  return flow(composeValidation(args), Mn.concatAll(ORvalidationMonoid));
-};
+const Or =
+  <T extends Validation>(first: T, ...rest: RNEA.ReadonlyNonEmptyArray<T>) =>
+  (s: string) => {
+    const AltOr = E.getAltValidation(Semi.intercalate(" OR ")(Str.Semigroup));
+    return Alt.altAll(AltOr)(first(s))(pipe(rest, RNEA.ap([s])));
+  };
 
 const validateTitle = (item: TodoItem) =>
-  pipe(
-    title.get(item),
-    Or(
-      secretcode(/wombat/),
-      And(notEmpty, min(10), max(20), Or(fstCharNum, fstCharCap)),
-    ),
-  );
+  pipe(title.get(item), And(notEmpty, min(10), max(20), Or(min(9), max(1))));
 
 export const validate = (v: TodoItem) =>
   pipe(
     v,
     validateTitle,
+    tap("validate"),
     E.map(() => v),
   );
