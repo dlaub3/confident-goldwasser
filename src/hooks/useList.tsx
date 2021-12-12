@@ -1,8 +1,7 @@
 import React from "react";
-import { ListState, TodoItem } from "../types";
+import { ListState, TodoItem, ItemId } from "../types";
 import { RA, pipe, State, Str } from "../deps";
 import { flow } from "fp-ts/lib/function";
-import { ItemId } from "../newtypes";
 import { coerceNewType, isFalse, pick } from "../utils";
 import { contramap } from "fp-ts/lib/Eq";
 import {

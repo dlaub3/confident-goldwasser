@@ -1,6 +1,5 @@
-import type { ItemId } from "./newtypes";
 import { itemIdC } from "./codecs";
-import { ListState, TodoItem } from "./types";
+import { ListState, TodoItem, ItemId } from "./types";
 import { NT, IOTST, O, RA, pipe, monocle, identity } from "./deps";
 import { findFirst, modifyOption } from "monocle-ts/Optional";
 

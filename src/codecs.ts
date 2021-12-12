@@ -1,6 +1,5 @@
 import { IOTS, IOTST } from "./deps";
-import { ItemId } from "./newtypes";
-import { TodoItem } from "./types";
+import { TodoItem, ItemId } from "./types";
 
 export const itemIdC = IOTST.fromNewtype<ItemId>(IOTST.NonEmptyString);
 

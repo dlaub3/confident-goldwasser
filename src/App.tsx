@@ -15,11 +15,10 @@ import { useSwitch } from "./hooks/useSwitch";
 import { useList } from "./hooks/useList";
 import { PageLayout } from "./components/PageLayout";
 import { EditItemDialog } from "./components/EditItemDialog";
-import { TodoItem as Item } from "./types";
+import { TodoItem as Item, ItemId } from "./types";
 import { coerceNewType, getWindowEnv } from "./utils";
 import { getUUID } from "./api";
 import { newItemId } from "./optics";
-import { ItemId } from "./newtypes";
 import { UUIDv4_URL } from "./env";
 
 export const getDefaultItem = (id: ItemId) =>

@@ -1,23 +1,17 @@
-import type { Branded } from "io-ts";
 import { itemC } from "./codecs";
-import * as t from "io-ts";
+import { IOTS, IOTST, newTypes } from "./deps";
 
-/*
- * The alternaive is to manually create a branded type.
- * ```
- *  interface TodoItemBrand {
- *    readonly TodoItem: unique symbol;
- *  }
- * ```
- */
+export interface ItemId
+  extends newTypes.Newtype<
+    { readonly ItemId: unique symbol },
+    IOTST.NonEmptyString
+  > {}
 
 type TodoItemBrandSymbol = { readonly TodoItem: symbol };
 
-type TodoItemT = t.TypeOf<typeof itemC>;
+type TodoItemT = IOTS.TypeOf<typeof itemC>;
 
-export type TodoItem = Branded<TodoItemT, TodoItemBrandSymbol>;
-
-// interface TodoItemBrand extends Brand<TodoItemBrandSymbol> {}
+export type TodoItem = IOTS.Branded<TodoItemT, TodoItemBrandSymbol>;
 
 export interface ListState {
   todoList: readonly TodoItem[];
